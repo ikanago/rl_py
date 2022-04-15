@@ -33,9 +33,12 @@ class Cell(Enum):
     BLOCK = 9
 
 
+Grid = List[List[Cell]]
+
+
 @dataclass
 class Environment:
-    grid: List[List[Cell]]
+    grid: Grid
     move_probability: float
     agent_state: State = State()
     default_reward: float = -0.04
@@ -92,7 +95,7 @@ class Environment:
             return next_state
         return state
 
-    def _transit_function(self, state: State, action: Action) -> Dict[State, float]:
+    def transit_function(self, state: State, action: Action) -> Dict[State, float]:
         transition_probabilities: Dict[State, float] = {}
         if not self._can_action_at(state):
             return transition_probabilities
@@ -115,7 +118,7 @@ class Environment:
 
         return transition_probabilities
 
-    def _reward_function(self, state: State) -> Tuple[float, bool]:
+    def reward_function(self, state: State) -> Tuple[float, bool]:
         reward = self.default_reward
         done = False
 
@@ -136,14 +139,14 @@ class Environment:
     def _transit(
         self, state: State, action: Action
     ) -> Tuple[Optional[State], Optional[float], bool]:
-        transition_probabilities = self._transit_function(state, action)
+        transition_probabilities = self.transit_function(state, action)
         if len(transition_probabilities) == 0:
             return None, None, True
 
         next_states = list(transition_probabilities.keys())
         probabilities = list(transition_probabilities.values())
         next_state = np.random.choice(next_states, p=probabilities)  # type: ignore
-        reward, done = self._reward_function(next_state)
+        reward, done = self.reward_function(next_state)
 
         return next_state, reward, done
 
