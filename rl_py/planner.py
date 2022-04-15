@@ -63,11 +63,14 @@ class ValueIterationPlanner(Planner):
 
                 expected_rewards = []
                 for action in actions:
-                    r = 0.0
-                    for probability, next_state, reward in self.transitions_at(
-                        state, action
-                    ):
-                        r += probability * (reward + gamma * V[next_state])
+                    r = sum(
+                        [
+                            probability * (reward + gamma * V[next_state])
+                            for probability, next_state, reward in self.transitions_at(
+                                state, action
+                            )
+                        ]
+                    )
                     expected_rewards.append(r)
                 max_reward = max(expected_rewards)
                 gain = max(gain, abs(max_reward - V[state]))
@@ -77,3 +80,47 @@ class ValueIterationPlanner(Planner):
                 break
 
         return self.dict_to_grid(V)
+
+
+@dataclass
+class PolicyIterationPlanner(Planner):
+    policy: Dict[State, Dict[Action, float]] = field(default_factory=dict, init=False)
+
+    def initialize(self) -> None:
+        super().initialize()
+
+        self.policy = {}
+        actions = self.env.actions
+        states = self.env.states
+        for state in states:
+            self.policy[state] = {}
+            for action in actions:
+                self.policy[state][action] = 1 / len(actions)
+
+    def estimate_by_policy(self, gamma: float, threshold: float) -> Dict[State, float]:
+        V: Dict[State, float] = {}
+        for state in self.env.states:
+            V[state] = 0.0
+
+        while True:
+            gain = 0.0
+            for state in V:
+                expected_rewards = []
+                for action, action_probability in self.policy[state].items():
+                    r = sum(
+                        [
+                            action_probability * probability * (reward + gamma * V[next_state])
+                            for probability, next_state, reward in self.transitions_at(
+                                state, action
+                            )
+                        ]
+                    )
+                    expected_rewards.append(r)
+                value = sum(expected_rewards)
+                gain = max(gain, abs(value - V[state]))
+                V[state] = value
+
+            if gain < threshold:
+                break
+
+        return V
