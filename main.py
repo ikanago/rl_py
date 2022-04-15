@@ -8,7 +8,7 @@ class Agent():
         self.actions = env.actions
 
     def policy(self, state: State) -> Action:
-        return np.random.choice(self.actions)
+        return np.random.choice(self.actions)  # type: ignore
 
 
 def main() -> None:
