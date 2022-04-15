@@ -142,7 +142,7 @@ class Environment:
 
         next_states = list(transition_probabilities.keys())
         probabilities = list(transition_probabilities.values())
-        next_state = np.random.choice(next_states, p=probabilities)
+        next_state = np.random.choice(next_states, p=probabilities)  # type: ignore
         reward, done = self._reward_function(next_state)
 
         return next_state, reward, done
