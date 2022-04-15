@@ -147,9 +147,7 @@ class Environment:
 
         return next_state, reward, done
 
-    def step(
-        self, action: Action
-    ) -> Tuple[Optional[State], Optional[float], bool]:
+    def step(self, action: Action) -> Tuple[Optional[State], Optional[float], bool]:
         next_state, reward, done = self._transit(self.agent_state, action)
         if next_state is not None:
             self.agent_state = next_state
